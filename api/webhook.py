@@ -1,21 +1,18 @@
-from http.server import BaseHTTPRequestHandler
-import json
+from flask import Flask, request, jsonify
 
-class handler(BaseHTTPRequestHandler):
-    def do_POST(self):
-        try:
-            content_length = int(self.headers.get('content-length', 0))
-            body = self.rfile.read(content_length)
-            data = json.loads(body.decode('utf-8'))
+app = Flask(__name__)
 
-            print("Webhook Received:", data)
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({"message": "Flask on Vercel working!"})
 
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.end_headers()
-            self.wfile.write(json.dumps({"message": "Webhook received"}).encode())
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    data = request.get_json(silent=True)
+    
+    print("Webhook Received:", data)
 
-        except Exception as e:
-            print("Error:", e)
-            self.send_response(500)
-            self.end_headers()
+    return jsonify({
+        "status": "success",
+        "received": data
+    }), 200
